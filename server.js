@@ -1,5 +1,5 @@
 import express from 'express';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 
 function isEmpty(field){
     if(field === "" || field === null){
@@ -15,12 +15,31 @@ app.use(express.urlencoded({ extended: false }));
 
 
 app.get('/find-by-isbn-author', (req, res) => {
-    res.send(
-        'Book: ' + req.query.bookName + '\n'+
-        'Author: ' + req.query.author + '\n'+
-        'ISBN: ' + req.query.isbn + '\n' +
-        'Year Published: ' + req.query.yearPublished + '\n'
-    );
+    const data = readFileSync(books.txt, "utf-8");  // read books.txt file
+    const books = data.split('\n');                  // creates an array of books in text file
+    var bookFound = false;
+    var bookSearch = [];
+
+    for(let book of books){
+        var bookInfo = book.split(','); //creates array for each info in book
+
+        if(bookInfo[1] === req.query.isbn && bookInfo[2] === req.query.author){
+            bookSearch = book;
+            bookFound = true;
+            break;
+        }
+    }
+
+    if(bookFound){
+        res.send(
+            'Book: ' + bookSearch[0] + '\n'+
+            'Author: ' + bookSearch[1] + '\n'+
+            'ISBN: ' + bookSearch[2] + '\n' +
+            'Year Published: ' + bookSearch[3] + '\n'
+        );
+    }else{
+        res.send("Book not found.")
+    }
 });
 
 app.get('/find-by-author', (req, res) => {
